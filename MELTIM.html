@@ -1,0 +1,728 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MELTIM V2.1 — Gestion scolaire</title>
+<style>
+:root{
+  --grn:#14402E; --grn2:#1C5240; --line:#2C5C49;
+  --gold:#D4A017; --gold-d:#A9810F; --gold-soft:#FBF1D4;
+  --blue:#2F6DB0; --bg:#F4F6F3; --surface:#FFFFFF; --soft:#EDF1EC; --softline:#E0E6DE;
+  --ink:#1C2B25; --mut:#6C7972; --dr:#C0413F; --ok:#2E7D52;
+  --sans:"Segoe UI",system-ui,-apple-system,Roboto,Arial,sans-serif; --mono:ui-monospace,"Consolas",monospace;
+}
+*{box-sizing:border-box} html,body{margin:0;height:100%}
+body{font-family:var(--sans);color:var(--ink);background:var(--bg);font-size:14px}
+button{font-family:inherit} input,select,textarea{font-family:inherit}
+.mono{font-family:var(--mono)}
+.ov{position:fixed;inset:0;background:rgba(8,20,15,.74);display:none;align-items:center;justify-content:center;z-index:60;padding:18px}
+.ov.show{display:flex}
+.ovbox{background:var(--surface);border-radius:16px;padding:30px;max-width:440px;width:100%;box-shadow:0 24px 60px rgba(0,0,0,.36);text-align:center}
+.ovbox.lg{max-width:600px;text-align:left}
+.ovbox h2{margin:.2em 0 .15em;font-size:22px;color:var(--grn)}
+.ovbox p{color:var(--mut);margin:.2em 0 1.1em;font-size:13px}
+.crest{width:58px;height:58px;border-radius:15px;background:linear-gradient(135deg,var(--grn),var(--grn2));display:inline-flex;align-items:center;justify-content:center;font-size:30px;box-shadow:0 8px 22px rgba(20,64,46,.35)}
+.in{width:100%;padding:11px 13px;border:1px solid var(--softline);border-radius:10px;font-size:14px;background:#fff;color:var(--ink);outline:none}
+.in:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(212,160,23,.16)}
+.err{color:var(--dr);font-size:12.5px;min-height:18px;margin:6px 0 2px;text-align:left}
+.btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--softline);background:#fff;color:var(--ink);padding:9px 14px;border-radius:10px;font-size:13.5px;cursor:pointer;font-weight:600;transition:.12s}
+.btn:hover{border-color:#c9d2c6}
+.btn.pri{background:var(--gold);border-color:var(--gold);color:#3a2c02}
+.btn.pri:hover{background:var(--gold-d);border-color:var(--gold-d)}
+.btn.grn{background:var(--grn);border-color:var(--grn);color:#fff}.btn.grn:hover{background:var(--grn2)}
+.btn.sm{padding:6px 10px;font-size:12.5px;border-radius:8px}
+.btn.dgr{color:var(--dr);border-color:#e8c4c3}.btn.dgr:hover{background:#fbeeed}
+.btn.gho{background:transparent;border-color:transparent;color:var(--mut)}
+#appShell{display:none;height:100vh}
+.layout{display:flex;height:100vh;overflow:hidden}
+.side{width:246px;background:var(--grn);color:#c5d6cd;display:flex;flex-direction:column;flex-shrink:0}
+.brand{padding:18px;display:flex;align-items:center;gap:11px;border-bottom:1px solid var(--line)}
+.brand .logo{width:40px;height:40px;border-radius:11px;background:linear-gradient(135deg,var(--gold),#F2CB5B);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.brand .nm{font-weight:800;font-size:17px;color:#fff;line-height:1}
+.brand .sb{font-size:10px;color:#8fb0a3;letter-spacing:.6px;text-transform:uppercase;margin-top:4px}
+.nav{flex:1;overflow:auto;padding:12px 10px}
+.nav .grp{font-size:10px;text-transform:uppercase;letter-spacing:1px;color:#6f9486;padding:12px 12px 5px}
+.nav a{display:flex;align-items:center;gap:11px;padding:9px 12px;border-radius:9px;color:#bdcec5;cursor:pointer;font-size:13.5px;font-weight:600;margin-bottom:1px}
+.nav a .ic{width:20px;text-align:center;font-size:15px}
+.nav a:hover{background:var(--grn2);color:#fff}
+.nav a.on{background:var(--gold);color:#3a2c02}
+.side .foot{padding:12px 16px;border-top:1px solid var(--line);font-size:10px;color:#6f9486;line-height:1.5}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:60px;background:var(--surface);border-bottom:1px solid var(--softline);display:flex;align-items:center;padding:0 22px;gap:16px;flex-shrink:0}
+.estab{font-weight:800;color:var(--grn)}
+.who{margin-left:auto;display:flex;align-items:center;gap:9px}
+.who .av{width:34px;height:34px;border-radius:50%;background:var(--grn);color:var(--gold);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:13px}
+.who .nm{font-size:13px;font-weight:700;line-height:1.1}.who .rl{font-size:11px;color:var(--mut)}
+.content{flex:1;overflow:auto;padding:24px 26px}
+.head{margin-bottom:18px}
+.head h1{margin:0;font-size:23px;color:var(--grn)}
+.head p{margin:5px 0 0;color:var(--mut);font-size:13px}
+.eyebrow{font-size:11px;text-transform:uppercase;letter-spacing:1.4px;color:var(--gold-d);font-weight:700}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(186px,1fr));gap:14px;margin-bottom:20px}
+.kpi{background:var(--surface);border:1px solid var(--softline);border-radius:14px;padding:16px 17px;position:relative;overflow:hidden}
+.kpi .l{font-size:11px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut);font-weight:700}
+.kpi .v{font-size:26px;font-weight:800;color:var(--grn);margin-top:7px;line-height:1}
+.kpi .d{font-size:11.5px;color:var(--mut);margin-top:5px}
+.kpi.lead{background:linear-gradient(150deg,#1C5240,#14402E);border:none}
+.kpi.lead .l{color:#a9c6bb}.kpi.lead .v{color:#fff}.kpi.lead .v b{color:var(--gold)}.kpi.lead .d{color:#9bbab0}
+.kpi .spark{position:absolute;right:-4px;bottom:-8px;font-size:50px;opacity:.08}
+.card{background:var(--surface);border:1px solid var(--softline);border-radius:14px;padding:18px;margin-bottom:16px}
+.card h3{margin:0 0 13px;font-size:15px;color:var(--grn);display:flex;align-items:center;gap:8px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead th{text-align:left;padding:9px 11px;color:var(--mut);font-size:11px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--softline);font-weight:700}
+tbody td{padding:10px 11px;border-bottom:1px solid var(--soft);vertical-align:middle}
+tbody tr:hover{background:#fafbf9}
+.empty{color:var(--mut);text-align:center;padding:30px;font-size:13px}
+.tag{display:inline-block;padding:2px 9px;border-radius:999px;font-size:11px;font-weight:700}
+.tag.ok{background:#e3f4ea;color:var(--ok)}.tag.due{background:#fbe6e5;color:var(--dr)}
+.tag.gr{background:#ebeee9;color:var(--mut)}.tag.gold{background:var(--gold-soft);color:var(--gold-d)}.tag.bl{background:#e7eef7;color:var(--blue)}
+.actions{display:flex;gap:6px;justify-content:flex-end}
+.row{display:flex;gap:12px;flex-wrap:wrap}.fld{flex:1;min-width:160px;margin-bottom:11px}.fld.sm{min-width:110px}
+.fl{display:block;font-size:11.5px;color:var(--mut);margin-bottom:5px;font-weight:600}
+.toolbar{display:flex;gap:10px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
+.search{flex:1;min-width:180px}
+.muted{color:var(--mut);font-size:12.5px}
+.badge-role{font-size:11px;padding:2px 8px;border-radius:999px;background:var(--gold-soft);color:var(--gold-d);font-weight:700}
+.note{background:#fbf6e7;border:1px solid #ece0bd;border-left:4px solid var(--gold);border-radius:10px;padding:11px 13px;font-size:12.5px;color:#6b5a23;margin:10px 0}
+.devoir{border:1px solid var(--softline);border-radius:12px;padding:14px;margin-bottom:10px}
+.devoir .t{font-weight:800;color:var(--grn)}
+.msg{border:1px solid var(--softline);border-radius:10px;padding:10px 12px;margin-bottom:8px}
+.msg .meta{font-size:11px;color:var(--mut)}
+@media print{ body *{visibility:hidden} #recuArea,#recuArea *{visibility:visible} #recuArea{position:absolute;left:0;top:0;width:100%} }
+</style>
+</head>
+<body>
+<!-- Connexion réseau (serveur de l'établissement) -->
+<div class="ov" id="netOv"><div class="ovbox">
+  <div class="crest">🎓</div>
+  <h2>Connexion au serveur</h2>
+  <p>Portail de l'établissement</p>
+  <input class="in" id="netUrl" placeholder="http://ADRESSE-DU-SERVEUR:4006" style="margin-bottom:10px">
+  <input class="in" id="netUser" placeholder="Identifiant" style="margin-bottom:10px" autocomplete="username">
+  <input class="in" id="netPwd" type="password" placeholder="Mot de passe" autocomplete="current-password">
+  <div class="err" id="netErr"></div>
+  <button class="btn pri" id="netConnect" style="width:100%;justify-content:center">Se connecter</button>
+  <button class="btn sm" id="netRegister" style="margin-top:10px">Créer mon compte (élève)</button>
+  <button class="btn sm gho" id="netBack" style="margin-top:4px">Changer de mode</button>
+</div></div>
+
+<!-- Inscription élève -->
+<div class="ov" id="regOv"><div class="ovbox">
+  <div class="crest">🧑‍🎓</div>
+  <h2>Créer mon compte élève</h2>
+  <p>Votre compte sur le portail de l'établissement.</p>
+  <input class="in" id="regNom" placeholder="Nom complet" style="margin-bottom:10px">
+  <input class="in" id="regUser" placeholder="Identifiant (3 caractères min.)" style="margin-bottom:10px" autocomplete="username">
+  <input class="in" id="regPwd" type="password" placeholder="Mot de passe (4 caractères min.)" autocomplete="new-password">
+  <div class="err" id="regErr"></div>
+  <button class="btn pri" id="regSubmit" style="width:100%;justify-content:center">Créer mon compte</button>
+  <button class="btn sm gho" id="regBack" style="margin-top:10px">Retour</button>
+</div></div>
+
+<!-- Connexion -->
+<div class="ov" id="loginOv"><div class="ovbox">
+  <div class="crest">🎓</div>
+  <h2 id="loginTitle">MELTIM V2.1</h2>
+  <p id="loginSub">Gestion scolaire — lycée & collège</p>
+  <input class="in" id="logUser" placeholder="Identifiant" style="margin-bottom:10px" autocomplete="username">
+  <input class="in" id="logPwd" type="password" placeholder="Mot de passe" autocomplete="current-password">
+  <div class="err" id="logErr"></div>
+  <button class="btn pri" id="logBtn" style="width:100%;justify-content:center">Se connecter</button>
+  <p style="margin-top:16px;font-size:11px">Développé par <b style="color:var(--grn)">Pro-Technologie</b><br>
+  📞 077 92 54 58 · 066 92 54 58 · <a href="mailto:ndongafene@protechnologie.com" style="color:var(--grn)">ndongafene@protechnologie.com</a></p>
+</div></div>
+
+<!-- Mode -->
+<div class="ov" id="modeSel"><div class="ovbox lg" style="text-align:center">
+  <div class="crest">🎓</div><h2 style="text-align:center">Mode d'installation</h2>
+  <p style="text-align:center">Comment ce poste va-t-il fonctionner ?</p>
+  <div style="display:flex;gap:12px;flex-wrap:wrap;text-align:left">
+    <button id="modeSolo" style="flex:1;min-width:210px;background:var(--grn);border:1px solid var(--line);border-radius:13px;padding:16px;cursor:pointer;color:#fff">
+      <div style="font-weight:800;margin-bottom:6px">💻 Poste unique</div><div style="font-size:12px;color:#c5d6cd;line-height:1.5">Un seul ordinateur, données sur ce poste.</div></button>
+    <button id="modeNet" style="flex:1;min-width:210px;background:var(--grn);border:1px solid var(--line);border-radius:13px;padding:16px;cursor:pointer;color:#fff">
+      <div style="font-weight:800;margin-bottom:6px">🌐 Poste client (réseau)</div><div style="font-size:12px;color:#c5d6cd;line-height:1.5">Portail de l'établissement (à venir).</div></button>
+  </div></div></div>
+
+<!-- Licence -->
+<div class="ov" id="lockOv"><div class="ovbox">
+  <div class="crest" style="background:linear-gradient(135deg,#C0413F,#ff7a7e);font-size:28px">🔒</div>
+  <h2>Licence expirée</h2><p id="lockMsg">Période d'utilisation terminée.</p>
+  <input class="in mono" id="lockKey" placeholder="ML-XXXX-XXXX-XXX" style="text-transform:uppercase;text-align:center">
+  <div class="err" id="lockErr"></div>
+  <button class="btn pri" id="lockBtn" style="width:100%;justify-content:center;margin-top:8px">Activer la licence</button>
+  <div style="margin-top:14px;background:rgba(212,160,23,.08);border:1px solid rgba(212,160,23,.3);border-radius:11px;padding:12px;text-align:center">
+    <div style="font-size:10px;font-weight:800;letter-spacing:.4px;text-transform:uppercase;color:var(--gold,#D4A017)">Activation & assistance — Pro-Technologie</div>
+    <div style="font-size:14px;font-weight:800;margin-top:5px">📞 077 92 54 58 · 066 92 54 58</div>
+    <div style="font-size:11px;margin-top:3px"><a href="mailto:ndongafene@protechnologie.com" style="color:var(--grn)">ndongafene@protechnologie.com</a></div>
+    <div style="font-size:10px;color:#888;margin-top:4px">Contactez-nous pour obtenir votre clé d'activation.</div>
+  </div>
+</div></div>
+
+<!-- Modale -->
+<div class="ov" id="modalOv"><div class="ovbox lg">
+  <h2 id="modalTitle" style="text-align:center">Titre</h2>
+  <div id="modalBody"></div>
+  <div style="display:flex;gap:10px;margin-top:18px">
+    <button class="btn" id="modalCancel" style="flex:1;justify-content:center">Annuler</button>
+    <button class="btn pri" id="modalOk" style="flex:1;justify-content:center">Valider</button>
+  </div></div></div>
+
+<!-- Application -->
+<div id="appShell"><div class="layout">
+  <aside class="side">
+    <div class="brand"><div class="logo">🎓</div><div><div class="nm">MELTIM</div><div class="sb">V2.1 · Pro-Technologie</div></div></div>
+    <nav class="nav" id="nav">
+      <a data-v="dash" class="on"><span class="ic">▦</span><span>Tableau de bord</span></a>
+      <div class="grp">Vie scolaire</div>
+      <a data-v="eleves"><span class="ic">🧑‍🎓</span><span>Élèves</span></a>
+      <a data-v="enseignants"><span class="ic">👩‍🏫</span><span>Enseignants</span></a>
+      <a data-v="classes"><span class="ic">🏫</span><span>Classes & matières</span></a>
+      <a data-v="notes"><span class="ic">📊</span><span>Notes & bulletins</span></a>
+      <a data-v="presences"><span class="ic">🗓</span><span>Présences</span></a>
+      <div class="grp">Espace de partage</div>
+      <a data-v="devoirs"><span class="ic">📚</span><span>Devoirs & exercices</span></a>
+      <a data-v="mesnotes" id="navMesnotes" style="display:none"><span class="ic">📊</span><span>Mes notes</span></a>
+      <a data-v="messages"><span class="ic">✉</span><span>Échanges</span></a>
+      <div class="grp">Administration</div>
+      <a data-v="users" id="navUsers"><span class="ic">⚇</span><span>Utilisateurs</span></a>
+      <a data-v="params"><span class="ic">⚙</span><span>Paramètres</span></a>
+      <a data-v="licence"><span class="ic">🔑</span><span>Licence</span></a>
+    </nav>
+    <div class="foot">MELTIM V2.1 · © Pro-Technologie<br>📞 077 92 54 58<br>📞 066 92 54 58</div>
+  </aside>
+  <div class="main">
+    <div class="topbar"><div class="estab" id="estabName">Établissement</div><div id="licBanner"></div>
+      <div class="who"><div class="av" id="whoAv">—</div><div><div class="nm" id="whoName">—</div><div class="rl" id="whoRole"></div></div>
+      <button class="btn sm gho" id="logoutBtn" title="Déconnexion">⎋</button></div>
+    </div>
+    <div class="content" id="view"></div>
+  </div>
+</div></div>
+<div id="recuArea" style="position:absolute;left:-9999px;top:0"></div>
+<script>
+const $=s=>document.querySelector(s);
+const APPKEY='meltim_app', CFGKEY='meltim_cfg';
+const PERIODES=['1er trimestre','2e trimestre','3e trimestre'];
+const ROLES_LBL={direction:'Direction',secretariat:'Secrétariat',enseignant:'Enseignant',eleve:'Élève'};
+function esc(s){return (s==null?'':String(s)).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));}
+function uid(p){return p+Date.now().toString(36)+Math.floor(Math.random()*1000).toString(36);}
+function today(){return Math.floor(Date.now()/86400000);}
+function nowISO(){return new Date().toISOString();}
+function dt(iso){try{return new Date(iso).toLocaleDateString('fr-FR');}catch(e){return '';}}
+function todayStr(){return new Date().toISOString().slice(0,10);}
+
+/* Licence ML- */
+const LSECRET='mes filles adorees';      // CONFIDENTIEL
+const LADMIN='protechnologiedecedric';   // CONFIDENTIEL
+const TRIAL_DAYS=30;
+function b36(n,len){let s=Math.abs(Math.floor(n)).toString(36).toUpperCase();while(s.length<len)s='0'+s;return s.slice(-len);}
+function _sum(str){let h=0;for(let i=0;i<str.length;i++)h=(h*31+str.charCodeAt(i))>>>0;return h;}
+function makeKey(plan,days){const exp=plan==='I'?0:today()+days;const inner=plan+b36(exp,4)+b36(Math.floor(Math.random()*1296),2);
+  const chk=b36(_sum(inner+LSECRET)%1679616,4);const body=(inner+chk).toUpperCase();return 'ML-'+body.slice(0,4)+'-'+body.slice(4,8)+'-'+body.slice(8,11);}
+function parseKey(key){try{const b=(key||'').toUpperCase().replace(/[^A-Z0-9]/g,'').replace(/^ML/,'');
+  if(b.length!==11)return{valid:false};const inner=b.slice(0,7),chk=b.slice(7,11);
+  if(b36(_sum(inner+LSECRET)%1679616,4)!==chk)return{valid:false};const plan=inner[0];const exp=parseInt(inner.slice(1,5),36);
+  if(!['E','D','I'].includes(plan))return{valid:false};return{valid:true,plan,exp};}catch(e){return{valid:false};}}
+
+function hashPwd(p){let h=0;const s='meltim-salt|'+p;for(let i=0;i<s.length;i++){h=(h*131+s.charCodeAt(i))>>>0;}return 'h'+h.toString(36);}
+
+/* Données */
+function seed(){return{
+  etab:{nom:'Mon établissement',type:'Lycée',ville:'Libreville',annee:'2025-2026',tel:'',email:'',directeur:'',logo:''},
+  users:[{id:uid('u'),nom:'Direction',login:'admin',role:'direction',pwd:hashPwd('admin')}],
+  eleves:[],enseignants:[],classes:[],matieres:[],notes:[],absences:[],devoirs:[],messages:[],
+  license:{plan:null,key:null,trialStart:today()},seq:{matricule:1}
+};}
+function load(){let d=null;try{d=JSON.parse(localStorage.getItem(APPKEY));}catch(e){}
+  if(!d||!d.users){d=seed();try{localStorage.setItem(APPKEY,JSON.stringify(d));}catch(e){}return d;}
+  d.etab=d.etab||seed().etab;
+  ['eleves','enseignants','classes','matieres','notes','absences','devoirs','messages'].forEach(k=>d[k]=d[k]||[]);
+  d.license=d.license||{plan:null,key:null,trialStart:today()};d.seq=d.seq||{matricule:1};
+  return d;}
+let DB=load(); let currentUser=null; let view='dash';
+function save(){if(netSession){if(currentUser&&currentUser.role!=='eleve')netPush();return;}try{localStorage.setItem(APPKEY,JSON.stringify(DB));}catch(e){alert('Stockage plein.');}}
+
+/* Rôles */
+function role(){return currentUser?currentUser.role:'';}
+function isAdmin(){return role()==='direction';}
+const ACCESS={dash:['direction','secretariat','enseignant','eleve'],eleves:['direction','secretariat','enseignant'],
+ enseignants:['direction','secretariat'],classes:['direction','secretariat'],notes:['direction','secretariat','enseignant'],
+ presences:['direction','secretariat','enseignant'],devoirs:['direction','secretariat','enseignant','eleve'],
+ mesnotes:['eleve'],messages:['direction','secretariat','enseignant'],users:['direction'],
+ params:['direction','secretariat','enseignant','eleve'],licence:['direction']};
+function canSee(v){return (ACCESS[v]||['direction']).includes(role());}
+
+/* Mode */
+let CFG={mode:null,netUrl:''};try{CFG=Object.assign(CFG,JSON.parse(localStorage.getItem(CFGKEY))||{});}catch(e){}
+function persistCfg(){try{localStorage.setItem(CFGKEY,JSON.stringify(CFG));}catch(e){}}
+
+/* ===== Mode réseau (serveur de l'établissement) ===== */
+let netSession=null;  // {url, token, user}
+const SHARED_KEYS=['etab','eleves','enseignants','classes','matieres','notes','absences','devoirs','messages','seq'];
+function inReseau(){return !!netSession;}
+function pick(o,keys){const r={};keys.forEach(k=>{if(o[k]!==undefined)r[k]=o[k];});return r;}
+async function srvFetch(path,opts){opts=opts||{};opts.headers=Object.assign({'Content-Type':'application/json'},opts.headers||{});
+  if(netSession&&netSession.token)opts.headers['Authorization']='Bearer '+netSession.token;
+  return fetch((netSession?netSession.url:'')+path,opts);}
+function setNetBadge(state){const b=$('#licBanner');if(!b)return;
+  const map={ok:['à jour','#e3f4ea','#2E7D52'],save:['enregistré','#e7eef7','#2F6DB0'],off:['hors ligne','#fbe6e5','#C0413F']};
+  const m=map[state]||map.ok;b.innerHTML='<span class="tag" style="background:'+m[1]+';color:'+m[2]+'">🌐 Réseau : '+m[0]+'</span>';}
+async function netPull(){const r=await srvFetch('/api/data');if(!r.ok)throw new Error('pull');const d=(await r.json()).doc||{};
+  SHARED_KEYS.forEach(k=>{if(d[k]!==undefined)DB[k]=d[k];});}
+let pushT=null;
+function netPush(){if(!netSession)return;clearTimeout(pushT);pushT=setTimeout(async()=>{
+  try{const r=await srvFetch('/api/data',{method:'POST',body:JSON.stringify({doc:pick(DB,SHARED_KEYS)})});setNetBadge(r.ok?'save':'off');}
+  catch(e){setNetBadge('off');}},350);}
+function resetSharedDefaults(){const s=seed();SHARED_KEYS.forEach(k=>{if(s[k]!==undefined)DB[k]=JSON.parse(JSON.stringify(s[k]));});}
+
+/* Modale */
+let modalOk=null;
+function openModal(title,body,okFn,okLabel){$('#modalTitle').textContent=title;$('#modalBody').innerHTML=body;
+  $('#modalOk').textContent=okLabel||'Valider';$('#modalOk').style.display='';modalOk=okFn;$('#modalOv').classList.add('show');
+  setTimeout(()=>{try{const f=$('#modalBody').querySelector('input:not([readonly]),select,textarea');if(f)f.focus();}catch(e){}},40);}
+function closeModal(){$('#modalOv').classList.remove('show');modalOk=null;}
+$('#modalCancel').onclick=closeModal;$('#modalOk').onclick=()=>{if(modalOk)modalOk();};
+
+/* Licence */
+function licState(){const L=DB.license||{};
+  if(L.plan==='I')return{ok:true,illimite:true,msg:'Licence illimitée'};
+  if(L.plan==='D'||L.plan==='E'){const left=(L.exp||0)-today();return{ok:left>=0,jours:left,msg:left>=0?('Licence active — '+left+' jour(s) restant(s)'):'Licence expirée'};}
+  const left=TRIAL_DAYS-(today()-(L.trialStart||today()));return{ok:left>=0,jours:left,msg:left>=0?('Essai — '+left+' jour(s) restant(s)'):'Période d\'essai terminée'};}
+function applyKey(key){const r=parseKey(key);if(!r.valid)return{ok:false,msg:'Clé invalide.'};DB.license={plan:r.plan,key:key.toUpperCase(),exp:r.plan==='I'?0:r.exp,trialStart:DB.license.trialStart};save();return{ok:true};}
+function updateLicenseUI(){if(netSession){setNetBadge('ok');$('#lockOv').classList.remove('show');return;}
+  const st=licState();$('#licBanner').innerHTML=(st.ok&&!st.illimite&&st.jours<=10)?'<span class="tag gold">⏳ '+st.msg+'</span>':'';
+  if(!st.ok){$('#lockMsg').textContent=st.msg+' Saisissez une clé pour continuer.';$('#lockOv').classList.add('show');}else $('#lockOv').classList.remove('show');}
+$('#lockBtn').onclick=()=>{const r=applyKey($('#lockKey').value.trim());if(!r.ok){$('#lockErr').textContent=r.msg;return;}$('#lockErr').textContent='';updateLicenseUI();render();};
+
+/* Auth */
+$('#logBtn').onclick=()=>{const u=$('#logUser').value.trim(),p=$('#logPwd').value;
+  const usr=DB.users.find(x=>x.login.toLowerCase()===u.toLowerCase()&&x.pwd===hashPwd(p));
+  if(!usr){$('#logErr').textContent='Identifiant ou mot de passe incorrect.';return;}
+  currentUser=usr;$('#logErr').textContent='';$('#logPwd').value='';
+  $('#loginOv').classList.remove('show');$('#appShell').style.display='block';view='dash';render();};
+$('#logPwd').addEventListener('keydown',e=>{if(e.key==='Enter')$('#logBtn').click();});
+$('#logoutBtn').onclick=()=>{if(netSession){try{srvFetch('/api/logout',{method:'POST'});}catch(e){}netSession=null;}currentUser=null;$('#appShell').style.display='none';if(CFG.mode==='reseau')showNetLogin();else showSoloLogin();};
+document.querySelectorAll('.nav a').forEach(a=>a.onclick=()=>{if(!canSee(a.dataset.v))return;view=a.dataset.v;render();});
+
+/* Helpers */
+function classeName(id){const c=DB.classes.find(x=>x.id===id);return c?(c.niveau?c.niveau+' ':'')+c.nom:'—';}
+function matiereName(id){const m=DB.matieres.find(x=>x.id===id);return m?m.nom:'—';}
+function eleveById(id){return DB.eleves.find(x=>x.id===id);}
+function eleveNom(id){const e=eleveById(id);return e?(e.nom+' '+(e.prenoms||'')).trim():'—';}
+function myEleve(){return currentUser&&currentUser.eleveId?eleveById(currentUser.eleveId):null;}
+function myClasseId(){const e=myEleve();return e?e.classeId:null;}
+
+/* Rendu */
+const views={};
+function render(){
+  if(currentUser&&!CFG.mode){showModeChooser();return;}
+  $('#estabName').textContent=DB.etab.nom||'Établissement';
+  $('#whoName').textContent=currentUser?currentUser.nom:'—';
+  $('#whoRole').textContent=currentUser?(ROLES_LBL[currentUser.role]||currentUser.role):'';
+  $('#whoAv').textContent=currentUser?(currentUser.nom||'?').slice(0,1).toUpperCase():'—';
+  $('#navUsers').style.display=isAdmin()?'':'none';
+  $('#navMesnotes').style.display=(role()==='eleve')?'':'none';
+  document.querySelectorAll('.nav a').forEach(a=>{if(a.id==='navMesnotes')return;a.style.display=canSee(a.dataset.v)?'':'none';a.classList.toggle('on',a.dataset.v===view);});
+  const lic=document.querySelector('.nav a[data-v="licence"]');if(lic&&netSession)lic.style.display='none';
+  if(netSession&&view==='licence')view='dash';
+  $('#navMesnotes').classList.toggle('on',view==='mesnotes');
+  if(!canSee(view))view='dash';
+  $('#view').innerHTML=(views[view]||views.dash)();
+  if(views['bind_'+view])views['bind_'+view]();
+  updateLicenseUI();
+}
+
+/* Tableau de bord */
+views.dash=()=>{
+  if(role()==='eleve'){const e=myEleve();const dv=DB.devoirs.filter(d=>d.classeId===myClasseId());
+    return `<div class="head"><div class="eyebrow">Espace élève</div><h1>Bonjour ${esc(e?e.prenoms||e.nom:'')}</h1><p>${esc(DB.etab.nom)} — ${esc(classeName(myClasseId()))}</p></div>
+    <div class="cards"><div class="kpi lead"><div class="l">Devoirs de ma classe</div><div class="v"><b>${dv.length}</b></div><div class="d">à consulter</div><div class="spark">📚</div></div></div>
+    <div class="card"><h3>📚 Derniers devoirs</h3>${dv.slice(-5).reverse().map(d=>`<div class="devoir"><div class="t">${esc(d.titre)}</div><div class="muted">${esc(matiereName(d.matiereId))} · à rendre le ${esc(dt(d.echeance))}</div></div>`).join('')||'<p class="empty">Aucun devoir.</p>'}</div>`;}
+  const dvOpen=DB.devoirs.filter(d=>!d.echeance||d.echeance>=todayStr()).length;
+  return `<div class="head"><div class="eyebrow">Vue d'ensemble</div><h1>Tableau de bord</h1><p>${esc(DB.etab.nom)} — ${esc(DB.etab.type||'')} · Année ${esc(DB.etab.annee||'')}</p></div>
+  <div class="cards">
+   <div class="kpi lead"><div class="l">Élèves inscrits</div><div class="v"><b>${DB.eleves.length}</b></div><div class="d">dans ${DB.classes.length} classe(s)</div><div class="spark">🧑‍🎓</div></div>
+   <div class="kpi"><div class="l">Enseignants</div><div class="v">${DB.enseignants.length}</div><div class="d">de l'établissement</div><div class="spark">👩‍🏫</div></div>
+   <div class="kpi"><div class="l">Devoirs en cours</div><div class="v">${dvOpen}</div><div class="d">dans l'espace de partage</div><div class="spark">📚</div></div>
+   <div class="kpi"><div class="l">Matières</div><div class="v">${DB.matieres.length}</div><div class="d">enseignées</div><div class="spark">📖</div></div>
+  </div>
+  <div class="card"><h3>📚 Derniers devoirs partagés</h3><table><thead><tr><th>Titre</th><th>Classe</th><th>Matière</th><th>Échéance</th></tr></thead><tbody>${DB.devoirs.slice(-6).reverse().map(d=>`<tr><td><b>${esc(d.titre)}</b></td><td>${esc(classeName(d.classeId))}</td><td>${esc(matiereName(d.matiereId))}</td><td class="muted">${esc(dt(d.echeance))}</td></tr>`).join('')||`<tr><td colspan="4" class="empty">Aucun devoir partagé.</td></tr>`}</tbody></table></div>`;
+};
+
+/* Élèves */
+views.eleves=()=>{const ed=role()!=='enseignant';
+  const rows=DB.eleves.slice().sort((a,b)=>(a.nom||'').localeCompare(b.nom||'')).map(e=>`<tr>
+    <td class="mono">${esc(e.matricule||'')}</td><td><b>${esc(e.nom)} ${esc(e.prenoms||'')}</b><div class="muted">${esc(e.tel||'')}</div></td>
+    <td>${esc(classeName(e.classeId))}</td><td>${esc(e.sexe||'')}</td><td>${e.statut==='Inactif'?'<span class="tag gr">Inactif</span>':'<span class="tag ok">Inscrit</span>'}</td>
+    <td class="actions">${ed?`<button class="btn sm" onclick="editEleve('${e.id}')">Modifier</button><button class="btn sm dgr" onclick="delEleve('${e.id}')">Suppr.</button>`:'<span class="muted">lecture</span>'}</td></tr>`).join('')
+    ||`<tr><td colspan="6" class="empty">Aucun élève.</td></tr>`;
+  return `<div class="head"><div class="eyebrow">Effectifs</div><h1>Élèves</h1><p>Les élèves inscrits dans l'établissement.</p></div>
+  <div class="toolbar">${ed?'<button class="btn pri" onclick="editEleve()">+ Nouvel élève</button>':''}<input class="in search" id="eS" placeholder="Rechercher…" oninput="document.querySelectorAll('#eT tbody tr').forEach(tr=>tr.style.display=tr.textContent.toLowerCase().includes(this.value.toLowerCase())?'':'none')"></div>
+  <div class="card"><table id="eT"><thead><tr><th>Matricule</th><th>Nom</th><th>Classe</th><th>Sexe</th><th>Statut</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+};
+window.editEleve=(id)=>{if(role()==='enseignant')return;const e=id?eleveById(id):{nom:'',prenoms:'',sexe:'M',naissance:'',classeId:DB.classes[0]?.id||'',tuteur:'',tel:'',statut:'Inscrit'};
+  const cls=DB.classes.map(c=>`<option value="${c.id}"${e.classeId===c.id?' selected':''}>${esc(classeName(c.id))}</option>`).join('')||'<option value="">(créez une classe)</option>';
+  openModal(id?'Modifier l\'élève':'Nouvel élève',
+   `<div class="row"><div class="fld"><label class="fl">Nom</label><input class="in" id="f_nom" value="${esc(e.nom)}"></div>
+    <div class="fld"><label class="fl">Prénoms</label><input class="in" id="f_pre" value="${esc(e.prenoms||'')}"></div></div>
+    <div class="row"><div class="fld sm"><label class="fl">Sexe</label><select class="in" id="f_sexe"><option${e.sexe==='M'?' selected':''}>M</option><option${e.sexe==='F'?' selected':''}>F</option></select></div>
+    <div class="fld sm"><label class="fl">Naissance</label><input class="in" id="f_naiss" type="date" value="${esc(e.naissance||'')}"></div>
+    <div class="fld"><label class="fl">Classe</label><select class="in" id="f_cl">${cls}</select></div></div>
+    <div class="row"><div class="fld"><label class="fl">Tuteur / parent</label><input class="in" id="f_tut" value="${esc(e.tuteur||'')}"></div>
+    <div class="fld sm"><label class="fl">Téléphone</label><input class="in" id="f_tel" value="${esc(e.tel||'')}"></div>
+    <div class="fld sm"><label class="fl">Statut</label><select class="in" id="f_st"><option${e.statut==='Inscrit'?' selected':''}>Inscrit</option><option${e.statut==='Inactif'?' selected':''}>Inactif</option></select></div></div>`,
+   ()=>{const nom=$('#f_nom').value.trim();if(!nom){alert('Nom obligatoire.');return;}
+     if(id)Object.assign(eleveById(id),{nom,prenoms:$('#f_pre').value.trim(),sexe:$('#f_sexe').value,naissance:$('#f_naiss').value,classeId:$('#f_cl').value,tuteur:$('#f_tut').value.trim(),tel:$('#f_tel').value.trim(),statut:$('#f_st').value});
+     else{const mat='E'+String(DB.seq.matricule).padStart(4,'0');DB.seq.matricule++;DB.eleves.push({id:uid('e'),matricule:mat,nom,prenoms:$('#f_pre').value.trim(),sexe:$('#f_sexe').value,naissance:$('#f_naiss').value,classeId:$('#f_cl').value,tuteur:$('#f_tut').value.trim(),tel:$('#f_tel').value.trim(),statut:$('#f_st').value,createdAt:nowISO()});}
+     save();closeModal();render();});};
+window.delEleve=(id)=>{if(!confirm('Supprimer cet élève ?'))return;DB.eleves=DB.eleves.filter(x=>x.id!==id);DB.notes=DB.notes.filter(n=>n.eleveId!==id);save();render();};
+
+/* Enseignants */
+views.enseignants=()=>{
+  const rows=DB.enseignants.slice().sort((a,b)=>(a.nom||'').localeCompare(b.nom||'')).map(t=>`<tr>
+    <td><b>${esc(t.nom)} ${esc(t.prenoms||'')}</b></td><td>${esc(t.matieres||'—')}</td><td>${esc(t.tel||'—')}</td>
+    <td class="actions"><button class="btn sm" onclick="editEns('${t.id}')">Modifier</button><button class="btn sm dgr" onclick="delEns('${t.id}')">Suppr.</button></td></tr>`).join('')
+    ||`<tr><td colspan="4" class="empty">Aucun enseignant.</td></tr>`;
+  return `<div class="head"><div class="eyebrow">Corps enseignant</div><h1>Enseignants</h1></div>
+  <div class="toolbar"><button class="btn pri" onclick="editEns()">+ Nouvel enseignant</button></div>
+  <div class="card"><table><thead><tr><th>Nom</th><th>Matières</th><th>Téléphone</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+};
+window.editEns=(id)=>{const t=id?DB.enseignants.find(x=>x.id===id):{nom:'',prenoms:'',matieres:'',tel:'',email:''};
+  openModal(id?'Modifier l\'enseignant':'Nouvel enseignant',
+   `<div class="row"><div class="fld"><label class="fl">Nom</label><input class="in" id="f_nom" value="${esc(t.nom)}"></div>
+    <div class="fld"><label class="fl">Prénoms</label><input class="in" id="f_pre" value="${esc(t.prenoms||'')}"></div></div>
+    <div class="fld"><label class="fl">Matières enseignées</label><input class="in" id="f_mat" value="${esc(t.matieres||'')}" placeholder="ex. Mathématiques, Physique"></div>
+    <div class="row"><div class="fld sm"><label class="fl">Téléphone</label><input class="in" id="f_tel" value="${esc(t.tel||'')}"></div>
+    <div class="fld"><label class="fl">E-mail</label><input class="in" id="f_mail" value="${esc(t.email||'')}"></div></div>`,
+   ()=>{const nom=$('#f_nom').value.trim();if(!nom){alert('Nom obligatoire.');return;}
+     if(id)Object.assign(DB.enseignants.find(x=>x.id===id),{nom,prenoms:$('#f_pre').value.trim(),matieres:$('#f_mat').value.trim(),tel:$('#f_tel').value.trim(),email:$('#f_mail').value.trim()});
+     else DB.enseignants.push({id:uid('t'),nom,prenoms:$('#f_pre').value.trim(),matieres:$('#f_mat').value.trim(),tel:$('#f_tel').value.trim(),email:$('#f_mail').value.trim(),createdAt:nowISO()});
+     save();closeModal();render();});};
+window.delEns=(id)=>{if(!confirm('Supprimer cet enseignant ?'))return;DB.enseignants=DB.enseignants.filter(x=>x.id!==id);save();render();};
+
+/* Classes & matières */
+views.classes=()=>{
+  const cr=DB.classes.map(c=>{const nb=DB.eleves.filter(e=>e.classeId===c.id).length;
+    return `<tr><td><b>${esc(classeName(c.id))}</b></td><td>${esc(c.profPrincipal||'—')}</td><td>${nb} élève(s)</td>
+    <td class="actions"><button class="btn sm" onclick="editClasse('${c.id}')">Modifier</button><button class="btn sm dgr" onclick="delClasse('${c.id}')">Suppr.</button></td></tr>`;}).join('')||`<tr><td colspan="4" class="empty">Aucune classe.</td></tr>`;
+  const mr=DB.matieres.map(m=>`<tr><td><b>${esc(m.nom)}</b></td><td>coef ${esc(m.coef||1)}</td>
+    <td class="actions"><button class="btn sm" onclick="editMat('${m.id}')">Modifier</button><button class="btn sm dgr" onclick="delMat('${m.id}')">Suppr.</button></td></tr>`).join('')||`<tr><td colspan="3" class="empty">Aucune matière.</td></tr>`;
+  return `<div class="head"><div class="eyebrow">Organisation</div><h1>Classes & matières</h1></div>
+  <div class="card"><h3>🏫 Classes</h3><div class="toolbar"><button class="btn pri sm" onclick="editClasse()">+ Nouvelle classe</button></div>
+   <table><thead><tr><th>Classe</th><th>Professeur principal</th><th>Effectif</th><th></th></tr></thead><tbody>${cr}</tbody></table></div>
+  <div class="card"><h3>📖 Matières</h3><div class="toolbar"><button class="btn pri sm" onclick="editMat()">+ Nouvelle matière</button></div>
+   <table><thead><tr><th>Matière</th><th>Coefficient</th><th></th></tr></thead><tbody>${mr}</tbody></table></div>`;
+};
+window.editClasse=(id)=>{const c=id?DB.classes.find(x=>x.id===id):{niveau:'',nom:'',profPrincipal:''};
+  openModal(id?'Modifier la classe':'Nouvelle classe',
+   `<div class="row"><div class="fld sm"><label class="fl">Niveau</label><input class="in" id="f_niv" value="${esc(c.niveau||'')}" placeholder="ex. 6ème, Terminale"></div>
+    <div class="fld"><label class="fl">Nom / série</label><input class="in" id="f_nom" value="${esc(c.nom)}" placeholder="ex. A, B, C, scientifique"></div></div>
+    <div class="fld"><label class="fl">Professeur principal</label><input class="in" id="f_pp" value="${esc(c.profPrincipal||'')}"></div>`,
+   ()=>{const nom=$('#f_nom').value.trim();if(!nom){alert('Nom obligatoire.');return;}
+     if(id)Object.assign(DB.classes.find(x=>x.id===id),{niveau:$('#f_niv').value.trim(),nom,profPrincipal:$('#f_pp').value.trim()});
+     else DB.classes.push({id:uid('c'),niveau:$('#f_niv').value.trim(),nom,profPrincipal:$('#f_pp').value.trim(),createdAt:nowISO()});
+     save();closeModal();render();});};
+window.delClasse=(id)=>{if(DB.eleves.some(e=>e.classeId===id)){alert('Des élèves sont rattachés à cette classe.');return;}if(!confirm('Supprimer cette classe ?'))return;DB.classes=DB.classes.filter(x=>x.id!==id);save();render();};
+window.editMat=(id)=>{const m=id?DB.matieres.find(x=>x.id===id):{nom:'',coef:1};
+  openModal(id?'Modifier la matière':'Nouvelle matière',
+   `<div class="row"><div class="fld"><label class="fl">Matière</label><input class="in" id="f_nom" value="${esc(m.nom)}"></div>
+    <div class="fld sm"><label class="fl">Coefficient</label><input class="in" id="f_coef" type="number" min="1" value="${esc(m.coef||1)}"></div></div>`,
+   ()=>{const nom=$('#f_nom').value.trim();if(!nom){alert('Nom obligatoire.');return;}
+     if(id)Object.assign(DB.matieres.find(x=>x.id===id),{nom,coef:parseFloat($('#f_coef').value||'1')||1});
+     else DB.matieres.push({id:uid('s'),nom,coef:parseFloat($('#f_coef').value||'1')||1});
+     save();closeModal();render();});};
+window.delMat=(id)=>{if(!confirm('Supprimer cette matière ?'))return;DB.matieres=DB.matieres.filter(x=>x.id!==id);save();render();};
+
+/* Notes & bulletins */
+views.notes=()=>{
+  const cls=DB.classes.map(c=>`<option value="${c.id}">${esc(classeName(c.id))}</option>`).join('');
+  const mats=DB.matieres.map(m=>`<option value="${m.id}">${esc(m.nom)}</option>`).join('');
+  const pers=PERIODES.map(p=>`<option>${p}</option>`).join('');
+  return `<div class="head"><div class="eyebrow">Évaluation</div><h1>Notes & bulletins</h1><p>Saisir les notes et éditer les bulletins.</p></div>
+  <div class="card"><h3>📊 Saisie des notes</h3>
+   <div class="row"><div class="fld"><label class="fl">Classe</label><select class="in" id="n_cl" onchange="render()">${cls}</select></div>
+   <div class="fld"><label class="fl">Matière</label><select class="in" id="n_mat">${mats}</select></div>
+   <div class="fld sm"><label class="fl">Période</label><select class="in" id="n_per">${pers}</select></div></div>
+   <div id="noteGrid"></div></div>`;
+};
+views.bind_notes=()=>{notesGrid();};
+function notesGrid(){const box=$('#noteGrid');if(!box)return;const cl=($('#n_cl')||{}).value;if(!cl){box.innerHTML='<p class="empty">Créez une classe et des matières.</p>';return;}
+  const elv=DB.eleves.filter(e=>e.classeId===cl).sort((a,b)=>(a.nom||'').localeCompare(b.nom||''));
+  box.innerHTML=`<table><thead><tr><th>Élève</th><th>Note /20</th><th>Bulletin</th></tr></thead><tbody>${elv.map(e=>`<tr><td>${esc(e.nom)} ${esc(e.prenoms||'')}</td>
+    <td><input class="in" style="width:90px" type="number" min="0" max="20" step="0.25" id="nt_${e.id}" placeholder="—"></td>
+    <td><button class="btn sm" onclick="bulletin('${e.id}')">Bulletin</button></td></tr>`).join('')||`<tr><td colspan="3" class="empty">Aucun élève dans cette classe.</td></tr>`}</tbody></table>
+    <button class="btn pri sm" style="margin-top:10px" onclick="saveNotes()">Enregistrer les notes</button>`;}
+window.saveNotes=()=>{const cl=$('#n_cl').value,mat=$('#n_mat').value,per=$('#n_per').value;if(!mat){alert('Choisissez une matière.');return;}
+  DB.eleves.filter(e=>e.classeId===cl).forEach(e=>{const el=$('#nt_'+e.id);if(el&&el.value!==''){const v=parseFloat(el.value);
+    let n=DB.notes.find(x=>x.eleveId===e.id&&x.matiereId===mat&&x.periode===per);
+    if(n)n.note=v;else DB.notes.push({id:uid('n'),eleveId:e.id,matiereId:mat,classeId:cl,periode:per,note:v,sur:20,date:nowISO()});}});
+  save();alert('Notes enregistrées.');};
+window.bulletin=(eleveId,per)=>{const e=eleveById(eleveId);if(!e)return;per=per||($('#n_per')?$('#n_per').value:PERIODES[0]);
+  const lignes=DB.matieres.map(m=>{const ns=DB.notes.filter(n=>n.eleveId===eleveId&&n.matiereId===m.id&&n.periode===per);
+    if(!ns.length)return null;const moy=ns.reduce((s,n)=>s+n.note,0)/ns.length;return{mat:m.nom,coef:m.coef||1,moy};}).filter(Boolean);
+  const totC=lignes.reduce((s,l)=>s+l.coef,0);const moyG=totC?lignes.reduce((s,l)=>s+l.moy*l.coef,0)/totC:0;
+  $('#recuArea').innerHTML=`<div style="font-family:Arial;max-width:560px;margin:0 auto;padding:16px;color:#111">
+    <div style="text-align:center;border-bottom:2px solid #14402E;padding-bottom:8px;margin-bottom:10px">
+      <div style="font-size:18px;font-weight:800;color:#14402E">${esc(DB.etab.nom)}</div><div style="font-size:11px;color:#555">${esc(DB.etab.type||'')} — ${esc(DB.etab.ville||'')} · Année ${esc(DB.etab.annee||'')}</div></div>
+    <div style="font-size:14px;font-weight:700;text-align:center;margin-bottom:8px">BULLETIN — ${esc(per)}</div>
+    <table style="width:100%;font-size:12px;border-collapse:collapse;margin-bottom:8px"><tr><td>Élève : <b>${esc(e.nom)} ${esc(e.prenoms||'')}</b></td><td style="text-align:right">Classe : ${esc(classeName(e.classeId))}</td></tr></table>
+    <table style="width:100%;font-size:12px;border-collapse:collapse"><thead><tr style="background:#14402E;color:#fff"><th style="text-align:left;padding:6px">Matière</th><th style="padding:6px">Coef</th><th style="padding:6px">Moyenne /20</th></tr></thead><tbody>
+    ${lignes.map(l=>`<tr><td style="padding:5px;border-bottom:1px solid #eee">${esc(l.mat)}</td><td style="padding:5px;text-align:center;border-bottom:1px solid #eee">${l.coef}</td><td style="padding:5px;text-align:center;border-bottom:1px solid #eee">${l.moy.toFixed(2)}</td></tr>`).join('')||'<tr><td colspan="3" style="padding:8px;text-align:center;color:#888">Aucune note pour cette période.</td></tr>'}
+    </tbody></table>
+    <div style="text-align:center;font-size:18px;font-weight:800;color:#14402E;margin:12px 0">Moyenne générale : ${moyG.toFixed(2)} / 20</div>
+    <div style="text-align:center;font-size:10px;color:#888;margin-top:10px;border-top:1px solid #ddd;padding-top:8px">Édité par MELTIM V2.1 · Pro-Technologie</div></div>`;
+  window.print();};
+
+/* Présences */
+views.presences=()=>{
+  const cls=DB.classes.map(c=>`<option value="${c.id}">${esc(classeName(c.id))}</option>`).join('');
+  const rows=DB.absences.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).slice(0,80).map(a=>`<tr>
+    <td>${esc(eleveNom(a.eleveId))}</td><td>${esc(dt(a.date))}</td><td>${a.type==='retard'?'<span class="tag gold">Retard</span>':'<span class="tag due">Absence</span>'}</td>
+    <td>${esc(a.motif||'')}</td><td>${a.justifie?'<span class="tag ok">justifiée</span>':'<span class="tag gr">non justifiée</span>'}</td>
+    <td class="actions"><button class="btn sm dgr" onclick="delAbs('${a.id}')">Suppr.</button></td></tr>`).join('')||`<tr><td colspan="6" class="empty">Aucune absence enregistrée.</td></tr>`;
+  return `<div class="head"><div class="eyebrow">Assiduité</div><h1>Présences</h1><p>Enregistrement des absences et retards.</p></div>
+  <div class="toolbar"><button class="btn pri" onclick="addAbs()">+ Signaler une absence/retard</button></div>
+  <div class="card"><table><thead><tr><th>Élève</th><th>Date</th><th>Type</th><th>Motif</th><th>Justifié</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>`;
+};
+window.addAbs=()=>{const elv=DB.eleves.map(e=>`<option value="${e.id}">${esc(e.nom)} ${esc(e.prenoms||'')} — ${esc(classeName(e.classeId))}</option>`).join('');
+  openModal('Signaler une absence / un retard',
+   `<div class="fld"><label class="fl">Élève</label><select class="in" id="a_el">${elv}</select></div>
+    <div class="row"><div class="fld sm"><label class="fl">Date</label><input class="in" id="a_date" type="date" value="${todayStr()}"></div>
+    <div class="fld sm"><label class="fl">Type</label><select class="in" id="a_type"><option value="absence">Absence</option><option value="retard">Retard</option></select></div>
+    <div class="fld sm"><label class="fl">Justifié</label><select class="in" id="a_just"><option value="non">Non</option><option value="oui">Oui</option></select></div></div>
+    <div class="fld"><label class="fl">Motif</label><input class="in" id="a_mot"></div>`,
+   ()=>{const el=$('#a_el').value;if(!el){alert('Choisissez un élève.');return;}
+     DB.absences.push({id:uid('ab'),eleveId:el,date:$('#a_date').value,type:$('#a_type').value,motif:$('#a_mot').value.trim(),justifie:$('#a_just').value==='oui'});save();closeModal();render();});};
+window.delAbs=(id)=>{if(!confirm('Supprimer ?'))return;DB.absences=DB.absences.filter(x=>x.id!==id);save();render();};
+
+/* Devoirs & exercices (espace de partage) */
+views.devoirs=()=>{
+  const mine=role()==='eleve';const cid=myClasseId();
+  let list=DB.devoirs.slice().sort((a,b)=>(b.createdAt||'').localeCompare(a.createdAt||''));
+  if(mine)list=list.filter(d=>d.classeId===cid);
+  const cards=list.map(d=>{const remis=(d.remises||[]).length;const myRemise=mine?(d.remises||[]).find(r=>r.eleveId===currentUser.eleveId):null;
+    return `<div class="devoir"><div style="display:flex;justify-content:space-between;gap:10px"><div><div class="t">${esc(d.titre)}</div>
+      <div class="muted">${esc(classeName(d.classeId))} · ${esc(matiereName(d.matiereId))} · par ${esc(d.enseignant||'')} · à rendre le ${esc(dt(d.echeance))}</div></div>
+      <div style="text-align:right">${d.fichier?`<button class="btn sm" onclick="openFile('devoir','${d.id}')">📎 Sujet</button>`:''}</div></div>
+      ${d.description?`<div style="margin-top:8px;font-size:13px">${esc(d.description)}</div>`:''}
+      <div style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap">
+        ${mine?(inReseau()?`<span class="muted">📌 Remise via le portail élève (prochaine étape)</span>`:`<button class="btn sm grn" onclick="rendre('${d.id}')">${myRemise?'Modifier ma remise':'Rendre mon travail'}</button>${myRemise&&myRemise.fichier?`<button class="btn sm" onclick="openFile('remise','${d.id}')">Voir ma remise</button>`:''}`)
+          :`<span class="tag bl">${remis} remise(s)</span> <button class="btn sm" onclick="voirRemises('${d.id}')">Voir les remises</button>
+            ${(role()==='direction'||d.enseignant===currentUser.nom)?`<button class="btn sm" onclick="editDevoir('${d.id}')">Modifier</button><button class="btn sm dgr" onclick="delDevoir('${d.id}')">Suppr.</button>`:''}`}
+      </div></div>`;}).join('')||`<p class="empty">Aucun devoir ${mine?'pour votre classe':'partagé'}.</p>`;
+  return `<div class="head"><div class="eyebrow">Espace de partage</div><h1>Devoirs & exercices</h1><p>${mine?'Les devoirs de votre classe — récupérez le sujet et rendez votre travail.':'Déposez des sujets pour les classes ; les élèves les récupèrent et rendent leur travail.'}</p></div>
+  ${mine?'':'<div class="toolbar"><button class="btn pri" onclick="editDevoir()">+ Déposer un devoir / exercice</button></div>'}
+  <div>${cards}</div>`;
+};
+window.editDevoir=(id)=>{if(role()==='eleve')return;const d=id?DB.devoirs.find(x=>x.id===id):{titre:'',classeId:DB.classes[0]?.id||'',matiereId:DB.matieres[0]?.id||'',echeance:'',description:'',fichier:'',nom:''};
+  const cls=DB.classes.map(c=>`<option value="${c.id}"${d.classeId===c.id?' selected':''}>${esc(classeName(c.id))}</option>`).join('');
+  const mats=DB.matieres.map(m=>`<option value="${m.id}"${d.matiereId===m.id?' selected':''}>${esc(m.nom)}</option>`).join('');
+  openModal(id?'Modifier le devoir':'Déposer un devoir / exercice',
+   `<div class="fld"><label class="fl">Titre</label><input class="in" id="f_t" value="${esc(d.titre)}"></div>
+    <div class="row"><div class="fld"><label class="fl">Classe</label><select class="in" id="f_cl">${cls}</select></div>
+    <div class="fld"><label class="fl">Matière</label><select class="in" id="f_mat">${mats}</select></div>
+    <div class="fld sm"><label class="fl">À rendre le</label><input class="in" id="f_ech" type="date" value="${esc(d.echeance||'')}"></div></div>
+    <div class="fld"><label class="fl">Consignes</label><textarea class="in" id="f_desc" rows="3">${esc(d.description||'')}</textarea></div>
+    <div class="fld"><label class="fl">Fichier joint (sujet, optionnel)</label><input class="in" id="f_file" type="file" accept="image/*,application/pdf"></div>`,
+   ()=>{const titre=$('#f_t').value.trim();if(!titre){alert('Titre obligatoire.');return;}
+     const finish=(data,nom)=>{const base={titre,classeId:$('#f_cl').value,matiereId:$('#f_mat').value,echeance:$('#f_ech').value,description:$('#f_desc').value.trim()};
+       if(id){const o=DB.devoirs.find(x=>x.id===id);Object.assign(o,base);if(data){o.fichier=data;o.nom=nom;}}
+       else DB.devoirs.push(Object.assign({id:uid('d'),enseignant:currentUser.nom,fichier:data||'',nom:nom||'',remises:[],createdAt:nowISO()},base));
+       save();closeModal();render();};
+     const f=$('#f_file').files[0];if(f){if(f.size>4*1024*1024){alert('Fichier trop volumineux (max 4 Mo).');return;}const rd=new FileReader();rd.onload=()=>finish(rd.result,f.name);rd.readAsDataURL(f);}else finish(id?'':'','');},
+   'Enregistrer');};
+window.delDevoir=(id)=>{if(!confirm('Supprimer ce devoir ?'))return;DB.devoirs=DB.devoirs.filter(x=>x.id!==id);save();render();};
+window.rendre=(id)=>{const d=DB.devoirs.find(x=>x.id===id);if(!d||!currentUser.eleveId)return;
+  openModal('Rendre mon travail — '+esc(d.titre),
+   `<div class="fld"><label class="fl">Mon fichier (image ou PDF)</label><input class="in" id="r_file" type="file" accept="image/*,application/pdf"></div>
+    <div class="fld"><label class="fl">Commentaire (optionnel)</label><textarea class="in" id="r_com" rows="2"></textarea></div>`,
+   ()=>{const f=$('#r_file').files[0];const com=$('#r_com').value.trim();
+     const finish=(data,nom)=>{d.remises=d.remises||[];let r=d.remises.find(x=>x.eleveId===currentUser.eleveId);
+       if(!r){r={eleveId:currentUser.eleveId};d.remises.push(r);}r.fichier=data||r.fichier||'';r.nom=nom||r.nom||'';r.commentaire=com;r.date=nowISO();
+       save();closeModal();render();};
+     if(f){if(f.size>4*1024*1024){alert('Fichier trop volumineux (max 4 Mo).');return;}const rd=new FileReader();rd.onload=()=>finish(rd.result,f.name);rd.readAsDataURL(f);}else finish('','');},
+   'Envoyer');};
+window.voirRemises=(id)=>{const d=DB.devoirs.find(x=>x.id===id);if(!d)return;
+  const rows=(d.remises||[]).map(r=>`<tr><td>${esc(eleveNom(r.eleveId))}</td><td class="muted">${esc(dt(r.date))}</td><td>${esc(r.commentaire||'')}</td><td>${r.fichier?`<button class="btn sm" onclick="openRemise('${id}','${r.eleveId}')">Ouvrir</button>`:'—'}</td></tr>`).join('')||`<tr><td colspan="4" class="empty">Aucune remise.</td></tr>`;
+  openModal('Remises — '+esc(d.titre),`<table><thead><tr><th>Élève</th><th>Date</th><th>Commentaire</th><th>Fichier</th></tr></thead><tbody>${rows}</tbody></table>`,()=>closeModal(),'Fermer');};
+window.openFile=(kind,id)=>{const d=DB.devoirs.find(x=>x.id===id);if(!d)return;let data=kind==='devoir'?d.fichier:((d.remises||[]).find(r=>r.eleveId===currentUser.eleveId)||{}).fichier;
+  if(!data){alert('Aucun fichier.');return;}const w=window.open();w.document.write('<iframe src="'+data+'" style="width:100%;height:100vh;border:0"></iframe>');};
+window.openRemise=(id,eid)=>{const d=DB.devoirs.find(x=>x.id===id);const r=(d.remises||[]).find(x=>x.eleveId===eid);if(!r||!r.fichier){alert('Aucun fichier.');return;}const w=window.open();w.document.write('<iframe src="'+r.fichier+'" style="width:100%;height:100vh;border:0"></iframe>');};
+
+/* Mes notes (élève) */
+views.mesnotes=()=>{const e=myEleve();if(!e)return '<div class="head"><h1>Mes notes</h1></div><p class="empty">Compte non relié à un élève.</p>';
+  const per=PERIODES;const blocks=per.map(p=>{const lignes=DB.matieres.map(m=>{const ns=DB.notes.filter(n=>n.eleveId===e.id&&n.matiereId===m.id&&n.periode===p);if(!ns.length)return null;const moy=ns.reduce((s,n)=>s+n.note,0)/ns.length;return{mat:m.nom,coef:m.coef||1,moy};}).filter(Boolean);
+    if(!lignes.length)return '';const totC=lignes.reduce((s,l)=>s+l.coef,0);const moyG=totC?lignes.reduce((s,l)=>s+l.moy*l.coef,0)/totC:0;
+    return `<div class="card"><h3>📊 ${esc(p)}</h3><table><thead><tr><th>Matière</th><th>Coef</th><th>Moyenne /20</th></tr></thead><tbody>${lignes.map(l=>`<tr><td>${esc(l.mat)}</td><td>${l.coef}</td><td><b>${l.moy.toFixed(2)}</b></td></tr>`).join('')}</tbody></table><p style="margin-top:8px"><b>Moyenne générale : ${moyG.toFixed(2)} / 20</b> <button class="btn sm" onclick="bulletin('${e.id}','${p}')">Imprimer le bulletin</button></p></div>`;}).join('')||'<p class="empty">Aucune note pour le moment.</p>';
+  return `<div class="head"><div class="eyebrow">Espace élève</div><h1>Mes notes</h1><p>${esc(e.nom)} ${esc(e.prenoms||'')} — ${esc(classeName(e.classeId))}</p></div>${blocks}`;
+};
+
+/* Échanges (messagerie interne) */
+views.messages=()=>{
+  const mine=DB.messages.slice().sort((a,b)=>(b.date||'').localeCompare(a.date||'')).filter(m=>{
+    if(role()==='direction')return true; if(m.cible==='all')return true;
+    if(role()==='enseignant')return m.cible==='enseignants'||m.deRole==='enseignant'||m.cible==='direction';
+    return m.cible==='all';});
+  const rows=mine.map(m=>`<div class="msg"><div style="display:flex;justify-content:space-between"><b>${esc(m.sujet)}</b><span class="meta">${esc(dt(m.date))}</span></div>
+    <div class="meta">de ${esc(m.de)} (${esc(ROLES_LBL[m.deRole]||m.deRole)}) → ${esc(m.cible==='direction'?'Direction':m.cible==='enseignants'?'Enseignants':'Tous')}</div>
+    <div style="margin-top:6px;font-size:13px">${esc(m.corps)}</div></div>`).join('')||'<p class="empty">Aucun message.</p>';
+  return `<div class="head"><div class="eyebrow">Communication</div><h1>Échanges</h1><p>Messages entre le corps enseignant et la direction.</p></div>
+  <div class="toolbar"><button class="btn pri" onclick="newMsg()">+ Nouveau message</button></div>
+  <div class="card">${rows}</div>`;
+};
+window.newMsg=()=>{const cibles=role()==='direction'?[['enseignants','Aux enseignants'],['all','À tous']]:[['direction','À la direction'],['enseignants','Aux enseignants']];
+  openModal('Nouveau message',
+   `<div class="row"><div class="fld"><label class="fl">Destinataire</label><select class="in" id="m_cible">${cibles.map(c=>`<option value="${c[0]}">${c[1]}</option>`).join('')}</select></div>
+    <div class="fld"><label class="fl">Sujet</label><input class="in" id="m_suj"></div></div>
+    <div class="fld"><label class="fl">Message</label><textarea class="in" id="m_corps" rows="4"></textarea></div>`,
+   ()=>{const suj=$('#m_suj').value.trim(),corps=$('#m_corps').value.trim();if(!suj||!corps){alert('Sujet et message obligatoires.');return;}
+     DB.messages.push({id:uid('msg'),de:currentUser.nom,deRole:role(),cible:$('#m_cible').value,sujet:suj,corps,date:nowISO()});save();closeModal();render();},'Envoyer');};
+
+/* Utilisateurs */
+views.users=()=>{
+  if(inReseau())return `<div class="head"><div class="eyebrow">Accès — serveur</div><h1>Utilisateurs</h1><p>Comptes du portail de l'établissement. La Direction crée et gère les comptes ; les élèves créent le leur et sont reliés ici à leur fiche.</p></div>
+   <div class="toolbar"><button class="btn pri" onclick="srvUserCreate()">+ Créer un compte</button></div>
+   <div class="card"><div id="srvUsers"><p class="empty">Chargement…</p></div></div>`;
+  const rows=DB.users.map(u=>`<tr><td><b>${esc(u.nom)}</b></td><td>${esc(u.login)}</td><td><span class="badge-role">${esc(ROLES_LBL[u.role]||u.role)}</span></td>
+   <td>${u.role==='eleve'&&u.eleveId?esc(eleveNom(u.eleveId)):''}</td>
+   <td class="actions"><button class="btn sm" onclick="editUser('${u.id}')">Modifier</button>${u.id!==currentUser.id?`<button class="btn sm dgr" onclick="delUser('${u.id}')">Suppr.</button>`:''}</td></tr>`).join('');
+  return `<div class="head"><div class="eyebrow">Accès</div><h1>Utilisateurs</h1><p>Comptes et rôles. La direction a accès à tout et crée les comptes.</p></div>
+  <div class="toolbar"><button class="btn pri" onclick="editUser()">+ Créer un compte</button></div>
+  <div class="card"><table><thead><tr><th>Nom</th><th>Identifiant</th><th>Rôle</th><th>Élève relié</th><th></th></tr></thead><tbody>${rows}</tbody></table></div>
+  <div class="note">Rôles : <b>Direction</b> (tout), <b>Secrétariat</b> (vie scolaire), <b>Enseignant</b> (notes, présences, devoirs, échanges), <b>Élève</b> (devoirs de sa classe, ses notes). Pour un compte Élève, reliez-le à la fiche de l'élève.</div>`;
+};
+views.bind_users=()=>{if(inReseau())loadSrvUsers();};
+async function loadSrvUsers(){const box=$('#srvUsers');if(!box)return;
+  try{const r=await srvFetch('/api/users');if(!r.ok){box.innerHTML='<p class="empty">Accès refusé ou serveur indisponible.</p>';return;}
+    const d=await r.json();box.innerHTML=`<table><thead><tr><th>Nom</th><th>Identifiant</th><th>Rôle</th><th>Élève relié</th><th>État</th><th></th></tr></thead><tbody>${
+     (d.users||[]).map(u=>`<tr><td><b>${esc(u.nom)}</b></td><td>${esc(u.login)}</td><td><span class="badge-role">${esc(ROLES_LBL[u.role]||u.role)}</span></td>
+      <td>${u.role==='eleve'?(u.eleve_id?esc(eleveNom(u.eleve_id)):'<span class="tag due">à relier</span>'):''}</td>
+      <td>${u.actif?'<span style="color:#2E7D52">actif</span>':'<span style="color:#C0413F">désactivé</span>'}${u.connecte?' • <b style="color:#2F6DB0">connecté</b>':''}</td>
+      <td class="actions">
+        ${u.role==='eleve'?`<button class="btn sm" onclick="srvLinkEleve(${u.id})">Relier élève</button>`:''}
+        <button class="btn sm" onclick="srvUserAction(${u.id},'actif',${u.actif?'false':'true'})">${u.actif?'Désactiver':'Activer'}</button>
+        <button class="btn sm" onclick="srvUserReset(${u.id})">Mot de passe</button></td></tr>`).join('')}</tbody></table>`;
+  }catch(e){box.innerHTML='<p class="empty">Serveur injoignable.</p>';}}
+window.srvUserCreate=()=>{const elv=DB.eleves.map(e=>`<option value="${e.id}">${esc(e.nom)} ${esc(e.prenoms||'')} — ${esc(classeName(e.classeId))}</option>`).join('');
+  openModal('Créer un compte (serveur)',
+   `<div class="row"><div class="fld"><label class="fl">Nom affiché</label><input class="in" id="su_nom"></div>
+    <div class="fld"><label class="fl">Identifiant</label><input class="in" id="su_log"></div></div>
+    <div class="row"><div class="fld sm"><label class="fl">Rôle</label><select class="in" id="su_role" onchange="document.getElementById('su_elZone').style.display=this.value==='eleve'?'':'none'"><option value="enseignant">Enseignant</option><option value="secretariat">Secrétariat</option><option value="direction">Direction</option><option value="eleve">Élève</option></select></div>
+    <div class="fld"><label class="fl">Mot de passe</label><input class="in" id="su_pwd" type="text"></div></div>
+    <div class="fld" id="su_elZone" style="display:none"><label class="fl">Relier à l'élève</label><select class="in" id="su_el"><option value="">—</option>${elv}</select></div>`,
+   async()=>{const nom=$('#su_nom').value.trim(),login=$('#su_log').value.trim(),role=$('#su_role').value,pwd=$('#su_pwd').value,eleveId=role==='eleve'?$('#su_el').value:'';
+     if(!nom||!login||pwd.length<4){alert('Nom, identifiant et mot de passe (4 min.) requis.');return;}
+     try{const r=await srvFetch('/api/users',{method:'POST',body:JSON.stringify({login,nom,role,password:pwd,eleveId})});const d=await r.json();
+       if(!r.ok){alert(d.error||'Échec.');return;}closeModal();loadSrvUsers();}catch(e){alert('Serveur injoignable.');}},'Créer');};
+window.srvUserAction=async(id,field,val)=>{if(field==='actif')val=(val===true||val==='true');
+  try{const body={};body[field]=val;const r=await srvFetch('/api/users/'+id,{method:'POST',body:JSON.stringify(body)});const d=await r.json();if(!r.ok)alert(d.error||'Action impossible.');loadSrvUsers();}catch(e){alert('Serveur injoignable.');}};
+window.srvUserReset=(id)=>{openModal('Nouveau mot de passe',`<div class="fld"><label class="fl">Nouveau mot de passe (4 min.)</label><input class="in" id="su_np" type="text"></div>`,
+  async()=>{const p=$('#su_np').value||'';if(p.length<4){alert('Trop court.');return;}
+    try{const r=await srvFetch('/api/users/'+id,{method:'POST',body:JSON.stringify({password:p})});const d=await r.json();if(!r.ok){alert(d.error||'Impossible.');}else{closeModal();alert('Mot de passe réinitialisé.');}}catch(e){alert('Serveur injoignable.');}},'Réinitialiser');};
+window.srvLinkEleve=(id)=>{const elv=DB.eleves.map(e=>`<option value="${e.id}">${esc(e.nom)} ${esc(e.prenoms||'')} — ${esc(classeName(e.classeId))}</option>`).join('');
+  openModal('Relier à un élève',`<div class="fld"><label class="fl">Élève</label><select class="in" id="su_le"><option value="">—</option>${elv}</select></div>`,
+   async()=>{const eleveId=$('#su_le').value;try{const r=await srvFetch('/api/users/'+id,{method:'POST',body:JSON.stringify({eleveId})});const d=await r.json();if(!r.ok){alert(d.error||'Impossible.');}else{closeModal();loadSrvUsers();}}catch(e){alert('Serveur injoignable.');}},'Relier');};
+
+window.editUser=(id)=>{if(!isAdmin())return;const u=id?DB.users.find(x=>x.id===id):{nom:'',login:'',role:'enseignant',eleveId:''};
+  const roles=[['direction','Direction'],['secretariat','Secrétariat'],['enseignant','Enseignant'],['eleve','Élève']].map(r=>`<option value="${r[0]}"${u.role===r[0]?' selected':''}>${r[1]}</option>`).join('');
+  const elv=DB.eleves.map(e=>`<option value="${e.id}"${u.eleveId===e.id?' selected':''}>${esc(e.nom)} ${esc(e.prenoms||'')} — ${esc(classeName(e.classeId))}</option>`).join('');
+  openModal(id?'Modifier le compte':'Créer un compte',
+   `<div class="row"><div class="fld"><label class="fl">Nom affiché</label><input class="in" id="f_nom" value="${esc(u.nom)}"></div>
+    <div class="fld"><label class="fl">Identifiant</label><input class="in" id="f_log" value="${esc(u.login)}"></div></div>
+    <div class="row"><div class="fld sm"><label class="fl">Rôle</label><select class="in" id="f_role" onchange="document.getElementById('f_elZone').style.display=this.value==='eleve'?'':'none'">${roles}</select></div>
+    <div class="fld"><label class="fl">${id?'Nouveau mot de passe (vide = inchangé)':'Mot de passe'}</label><input class="in" id="f_pwd" type="text"></div></div>
+    <div class="fld" id="f_elZone" style="display:${u.role==='eleve'?'':'none'}"><label class="fl">Relier à l'élève (pour un compte Élève)</label><select class="in" id="f_el"><option value="">—</option>${elv}</select></div>`,
+   ()=>{const nom=$('#f_nom').value.trim(),login=$('#f_log').value.trim(),r=$('#f_role').value,pwd=$('#f_pwd').value;
+     if(!nom||!login){alert('Nom et identifiant obligatoires.');return;}
+     if(DB.users.some(x=>x.login.toLowerCase()===login.toLowerCase()&&x.id!==id)){alert('Identifiant déjà pris.');return;}
+     const eleveId=r==='eleve'?($('#f_el').value||''):'';
+     if(id){const o=DB.users.find(x=>x.id===id);o.nom=nom;o.login=login;o.role=r;o.eleveId=eleveId;if(pwd)o.pwd=hashPwd(pwd);}
+     else{if(!pwd){alert('Mot de passe obligatoire.');return;}DB.users.push({id:uid('u'),nom,login,role:r,eleveId,pwd:hashPwd(pwd)});}
+     save();closeModal();render();});};
+window.delUser=(id)=>{if(!isAdmin())return;if(DB.users.filter(u=>u.role==='direction').length<=1&&DB.users.find(u=>u.id===id).role==='direction'){alert('Il doit rester au moins un compte Direction.');return;}if(!confirm('Supprimer ce compte ?'))return;DB.users=DB.users.filter(x=>x.id!==id);save();render();};
+
+/* Paramètres */
+views.params=()=>{const o=DB.etab;const ad=isAdmin();
+  return `<div class="head"><div class="eyebrow">Configuration</div><h1>Paramètres</h1></div>
+  <div class="card"><h3>🏫 Établissement</h3>
+   <div class="row"><div class="fld"><label class="fl">Nom de l'établissement</label><input class="in" id="o_nom" value="${esc(o.nom)}" ${ad?'':'disabled'}></div>
+   <div class="fld sm"><label class="fl">Type</label><select class="in" id="o_type" ${ad?'':'disabled'}><option${o.type==='Lycée'?' selected':''}>Lycée</option><option${o.type==='Collège'?' selected':''}>Collège</option><option${o.type==='Groupe scolaire'?' selected':''}>Groupe scolaire</option></select></div></div>
+   <div class="row"><div class="fld"><label class="fl">Ville</label><input class="in" id="o_ville" value="${esc(o.ville||'')}" ${ad?'':'disabled'}></div>
+   <div class="fld sm"><label class="fl">Année scolaire</label><input class="in" id="o_an" value="${esc(o.annee||'')}" ${ad?'':'disabled'}></div>
+   <div class="fld"><label class="fl">Chef d'établissement</label><input class="in" id="o_dir" value="${esc(o.directeur||'')}" ${ad?'':'disabled'}></div></div>
+   <div class="row"><div class="fld sm"><label class="fl">Téléphone</label><input class="in" id="o_tel" value="${esc(o.tel||'')}" ${ad?'':'disabled'}></div>
+   <div class="fld"><label class="fl">E-mail</label><input class="in" id="o_mail" value="${esc(o.email||'')}" ${ad?'':'disabled'}></div></div>
+   ${ad?'<button class="btn pri sm" onclick="saveEtab()">Enregistrer</button>':'<p class="muted">Réservé à la direction.</p>'}</div>
+  <div class="card"><h3>🔐 Mon mot de passe</h3><div class="row"><div class="fld"><label class="fl">Nouveau</label><input class="in" id="p_pwd" type="password"></div><div class="fld"><label class="fl">Confirmer</label><input class="in" id="p_pwd2" type="password"></div></div><button class="btn sm" onclick="changeMyPwd()">Changer</button></div>
+  ${ad?`<div class="card"><h3>💾 Sauvegarde</h3><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn sm" onclick="backupData()">Télécharger</button><button class="btn sm" onclick="document.getElementById('rf').click()">Restaurer…</button><input type="file" id="rf" accept="application/json" style="display:none" onchange="restoreData(event)"></div></div>
+  <div class="card"><h3>🌐 Mode</h3><p class="muted">Mode actuel : <b>${CFG.mode==='reseau'?'Réseau':'Poste unique'}</b>. Le portail réseau (élèves/enseignants connectés au serveur) viendra à la prochaine étape.</p><button class="btn sm" onclick="changeMode()">Changer de mode</button></div>`:''}`;
+};
+window.saveEtab=()=>{if(!isAdmin())return;const o=DB.etab;o.nom=$('#o_nom').value.trim()||o.nom;o.type=$('#o_type').value;o.ville=$('#o_ville').value.trim();o.annee=$('#o_an').value.trim();o.directeur=$('#o_dir').value.trim();o.tel=$('#o_tel').value.trim();o.email=$('#o_mail').value.trim();save();alert('Enregistré.');render();};
+window.changeMyPwd=()=>{if(inReseau()){alert('En mode réseau, demandez à la Direction de réinitialiser votre mot de passe.');return;}const a=$('#p_pwd').value,b=$('#p_pwd2').value;if(a.length<4){alert('Trop court (4 min.).');return;}if(a!==b){alert('Les deux diffèrent.');return;}currentUser.pwd=hashPwd(a);const o=DB.users.find(x=>x.id===currentUser.id);if(o)o.pwd=currentUser.pwd;save();alert('Mot de passe changé.');};
+window.backupData=()=>{const blob=new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='meltim-sauvegarde-'+todayStr()+'.json';a.click();};
+window.restoreData=(ev)=>{const f=ev.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{try{const d=JSON.parse(rd.result);if(!d.users)throw 0;if(!confirm('Remplacer toutes les données ?'))return;DB=d;save();alert('Restauré.');render();}catch(e){alert('Fichier invalide.');}};rd.readAsText(f);};
+window.changeMode=()=>{if(netSession){try{srvFetch('/api/logout',{method:'POST'});}catch(e){}netSession=null;}currentUser=null;CFG.mode=null;persistCfg();$('#appShell').style.display='none';showModeChooser();};
+
+/* Licence */
+views.licence=()=>{const st=licState();const L=DB.license||{};
+  return `<div class="head"><div class="eyebrow">Activation</div><h1>Licence</h1></div>
+  <div class="card"><h3>🔑 État</h3><p style="font-size:16px"><b style="color:${st.ok?'var(--ok)':'var(--dr)'}">${esc(st.msg)}</b></p>
+   ${L.key?`<p class="muted">Clé active : <span class="mono">${esc(L.key)}</span></p>`:''}
+   <div class="row" style="margin-top:10px"><div class="fld"><label class="fl">Saisir une clé</label><input class="in mono" id="lk" placeholder="ML-XXXX-XXXX-XXX" style="text-transform:uppercase"></div></div>
+   <button class="btn pri sm" onclick="activerLic()">Activer</button></div>
+  <div class="card"><h3>🛠 Générateur de clés (réservé)</h3><button class="btn sm" onclick="openGen()">Ouvrir le générateur</button></div>`;
+};
+window.activerLic=()=>{const r=applyKey($('#lk').value.trim());alert(r.ok?'Licence activée.':r.msg);render();};
+window.openGen=()=>{openModal('Générateur de clés',`<div class="fld"><label class="fl">Mot de passe du générateur</label><input class="in" id="g_pwd" type="password"></div><div id="genZone"></div>`,
+  ()=>{if($('#g_pwd').style.display==='none')return;if($('#g_pwd').value!==LADMIN){alert('Mot de passe incorrect.');return;}$('#g_pwd').style.display='none';
+   $('#genZone').innerHTML=`<div class="row"><div class="fld sm"><label class="fl">Type</label><select class="in" id="g_plan"><option value="E">Essai 30 j</option><option value="D">Durée</option><option value="I">Illimitée</option></select></div><div class="fld sm"><label class="fl">Durée (mois)</label><input class="in" id="g_mois" type="number" value="12"></div></div><button class="btn pri sm" type="button" onclick="doGen()">Générer</button><div id="genOut" style="margin-top:12px"></div>`;
+   $('#modalOk').style.display='none';},'Valider');};
+window.doGen=()=>{const plan=$('#g_plan').value;const mois=parseInt($('#g_mois').value||'12',10);const days=plan==='E'?TRIAL_DAYS:(plan==='D'?Math.round(mois*30):0);const key=makeKey(plan,days);
+  $('#genOut').innerHTML=`<div class="mono" style="background:var(--grn);color:var(--gold);padding:12px;border-radius:8px;text-align:center;font-size:16px;letter-spacing:2px">${esc(key)}</div><button class="btn sm" style="margin-top:8px" type="button" onclick="navigator.clipboard&&navigator.clipboard.writeText('${key}')">Copier</button>`;};
+
+/* Mode & démarrage */
+function showModeChooser(){['loginOv','netOv','regOv'].forEach(i=>$('#'+i).classList.remove('show'));$('#appShell').style.display='none';$('#modeSel').classList.add('show');}
+function showNetLogin(){['loginOv','modeSel','regOv'].forEach(i=>$('#'+i).classList.remove('show'));$('#appShell').style.display='none';if(CFG.netUrl)$('#netUrl').value=CFG.netUrl;$('#netOv').classList.add('show');setTimeout(()=>{try{(CFG.netUrl?$('#netUser'):$('#netUrl')).focus();}catch(e){}},60);}
+function showSoloLogin(){['netOv','modeSel','regOv'].forEach(i=>$('#'+i).classList.remove('show'));$('#loginOv').classList.add('show');setTimeout(()=>{try{$('#logUser').focus();}catch(e){}},60);}
+if($('#modeSolo'))$('#modeSolo').onclick=()=>{CFG.mode='solo';persistCfg();showSoloLogin();};
+if($('#modeNet'))$('#modeNet').onclick=()=>{CFG.mode='reseau';persistCfg();showNetLogin();};
+if($('#netBack'))$('#netBack').onclick=()=>{CFG.mode=null;persistCfg();showModeChooser();};
+
+if($('#netConnect'))$('#netConnect').onclick=async()=>{
+  const url=($('#netUrl').value||'').trim().replace(/\/+$/,'');const login=$('#netUser').value.trim();const pwd=$('#netPwd').value;
+  if(!url){$('#netErr').textContent='Saisissez l\'adresse du serveur.';return;}
+  $('#netErr').style.color='var(--mut)';$('#netErr').textContent='Connexion…';
+  try{const r=await fetch(url+'/api/login',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({login,password:pwd})});
+    let d={};try{d=await r.json();}catch(e){}
+    if(!r.ok){$('#netErr').style.color='var(--dr)';$('#netErr').textContent=(d&&d.error)||('Échec (code '+r.status+').');return;}
+    netSession={url,token:d.token,user:d.user};CFG.netUrl=url;persistCfg();
+    currentUser={id:d.user.id,login:d.user.login,nom:d.user.nom,role:d.user.role,eleveId:d.user.eleveId||''};
+    resetSharedDefaults();try{await netPull();}catch(e){}
+    $('#netPwd').value='';$('#netErr').textContent='';$('#netOv').classList.remove('show');$('#appShell').style.display='block';view='dash';render();
+  }catch(e){$('#netErr').style.color='var(--dr)';$('#netErr').textContent='Serveur injoignable. Vérifiez l\'adresse et le réseau.';}};
+if($('#netPwd'))$('#netPwd').addEventListener('keydown',e=>{if(e.key==='Enter')$('#netConnect').click();});
+
+if($('#netRegister'))$('#netRegister').onclick=()=>{const url=($('#netUrl').value||'').trim().replace(/\/+$/,'');
+  if(!url){$('#netErr').style.color='var(--dr)';$('#netErr').textContent='Saisissez d\'abord l\'adresse du serveur.';return;}
+  netSession={url,token:null,user:null};$('#regErr').textContent='';$('#netOv').classList.remove('show');$('#regOv').classList.add('show');setTimeout(()=>{try{$('#regNom').focus();}catch(e){}},60);};
+if($('#regBack'))$('#regBack').onclick=()=>{$('#regOv').classList.remove('show');showNetLogin();};
+if($('#regSubmit'))$('#regSubmit').onclick=async()=>{const nom=$('#regNom').value.trim(),login=$('#regUser').value.trim(),pwd=$('#regPwd').value;
+  if(login.length<3){$('#regErr').style.color='var(--dr)';$('#regErr').textContent='Identifiant trop court (3 min.).';return;}
+  if(pwd.length<4){$('#regErr').style.color='var(--dr)';$('#regErr').textContent='Mot de passe trop court (4 min.).';return;}
+  $('#regErr').style.color='var(--mut)';$('#regErr').textContent='Création…';
+  try{const r=await fetch(netSession.url+'/api/register',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({nom,login,password:pwd})});
+    let d={};try{d=await r.json();}catch(e){}
+    if(!r.ok){$('#regErr').style.color='var(--dr)';$('#regErr').textContent=(d&&d.error)||'Échec.';return;}
+    const url=netSession.url;netSession=null;$('#regOv').classList.remove('show');showNetLogin();$('#netUrl').value=url;$('#netUser').value=login;$('#netPwd').value=pwd;$('#netErr').style.color='var(--ok)';$('#netErr').textContent='Compte créé. Connectez-vous.';
+  }catch(e){$('#regErr').style.color='var(--dr)';$('#regErr').textContent='Serveur injoignable.';}};
+
+if($('#modeNet')){/* mode chooser ready */}
+/* Démarrage */
+if(!CFG.mode)showModeChooser();
+else if(CFG.mode==='reseau')showNetLogin();
+else showSoloLogin();
+
+</script>
+</body>
+</html>
